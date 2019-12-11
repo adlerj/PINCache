@@ -1,14 +1,11 @@
 load("//tools/buck/rules:buck_rule_macros.bzl", "dbx_apple_third_party_library")
 
 dbx_apple_third_party_library(
-    name = "PINCache",
-    header_path_prefix = "PINCache",
-    module_name = "PINCache",
+    name = "PINOperation",
+    module_name = "PINOperation",
+    header_path_prefix = "PINOperation",
     modular = True,
     exported_headers = glob(['Source/*.h']),
     srcs = glob(['Source/*.m']),
     frameworks = [ "Foundation", ],
-    deps = [
-      "//dbx/external/PINCache/PINCache/PINOperation:PINOperation"
-    ]
 )
