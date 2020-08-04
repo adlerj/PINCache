@@ -111,7 +111,7 @@ static NSURL *_sharedTrashURL;
 - (void)dealloc
 {
     __unused int result = pthread_mutex_destroy(&_mutex);
-    NSCAssert(result == 0, @"Failed to destroy lock in PINMemoryCache %p. Code: %d", (void *)self, result);
+    NSCAssert(result == 0, @"Failed to destroy lock in PINDiskCache %p. Code: %d", (void *)self, result);
     pthread_cond_destroy(&_diskWritableCondition);
     pthread_cond_destroy(&_diskStateKnownCondition);
 }
@@ -185,19 +185,19 @@ static NSURL *_sharedTrashURL;
               operationQueue:(PINOperationQueue *)operationQueue
                     ttlCache:(BOOL)ttlCache
 {
-    if (!name)
+    if (!name) {
         return nil;
-    
+    }
 
     NSAssert(((!serializer && !deserializer) || (serializer && deserializer)),
              @"PINDiskCache must be initialized with a serializer AND deserializer.");
     
     NSAssert(((!keyEncoder && !keyDecoder) || (keyEncoder && keyDecoder)),
-              @"PINDiskCache must be initialized with a encoder AND decoder.");
+              @"PINDiskCache must be initialized with an encoder AND decoder.");
     
     if (self = [super init]) {
         __unused int result = pthread_mutex_init(&_mutex, NULL);
-        NSAssert(result == 0, @"Failed to init lock in PINMemoryCache %@. Code: %d", self, result);
+        NSAssert(result == 0, @"Failed to init lock in PINDiskCache %@. Code: %d", self, result);
         
         _name = [name copy];
         _prefix = [prefix copy];
@@ -666,10 +666,13 @@ static NSURL *_sharedTrashURL;
 - (BOOL)removeFileAndExecuteBlocksForKey:(NSString *)key
 {
     NSURL *fileURL = [self encodedFileURLForKey:key];
-    
+    if (!fileURL) {
+        return NO;
+    }
+
     // We only need to lock until writable at the top because once writable, always writable
     [self lockForWriting];
-        if (!fileURL || ![[NSFileManager defaultManager] fileExistsAtPath:[fileURL path]]) {
+        if (![[NSFileManager defaultManager] fileExistsAtPath:[fileURL path]]) {
             [self unlock];
             return NO;
         }
